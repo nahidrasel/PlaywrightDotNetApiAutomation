@@ -12,7 +12,7 @@ public class UsersTests : BaseTest
     [SetUp]
     public void CreateUserApi()
     {
-        _userApi= new UsersApi(ApiContext);
+        _userApi = new UsersApi(ApiContext);
     }
 
     [Test]
@@ -32,5 +32,29 @@ public class UsersTests : BaseTest
     {
         var response = await ApiContext.GetAsync("/api/users/99999");
         response.Status.Should().Be(404, "Test Should Return 404");
+    }
+
+    [Test]
+    public async Task CreateUser_ShouldReturn201()
+    {
+        var request = new CreateUserRequest
+        {
+            Name = "Nahid",
+            Job = "QA Automation Engineer"
+        };
+
+        var response = await _userApi.CreateUser(request);
+
+        response.Status.Should().Be(201);
+
+        var body = await response.JsonAsync<JsonNode>();
+
+        body.Should().NotBeNull();
+
+        body?["name"]?.GetValue<string>()
+            .Should().Be(request.Name);
+
+        body?["job"]?.GetValue<string>()
+            .Should().Be(request.Job);
     }
 }

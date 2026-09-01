@@ -16,11 +16,11 @@ public class UsersApi
         return await _apiContext.GetAsync($"/api/users/{id}");
     }
 
-    public async Task<IAPIResponse> CreateUser(object requestBody)
+    public async Task<IAPIResponse> CreateUser(CreateUserRequest request)
     {
         return await _apiContext.PostAsync("/api/users", new APIRequestContextOptions
         {
-            DataObject = requestBody
+            DataObject = request
         });
     }
 }
