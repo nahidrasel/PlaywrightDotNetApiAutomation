@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using FluentAssertions;
 using PlaywrightDotNetApiAutomation.Api;
 using PlaywrightDotNetApiAutomation.Fixtures;
+using PlaywrightDotNetApiAutomation.Helpers;
 
 namespace PlaywrightDotNetApiAutomation.Tests;
 
@@ -39,7 +40,7 @@ public class UsersTests : BaseTest
     {
         var request = new CreateUserRequest
         {
-            Name = "Nahid",
+            Name = TestDataHelper.UniqueName(),
             Job = "QA Automation Engineer"
         };
 
