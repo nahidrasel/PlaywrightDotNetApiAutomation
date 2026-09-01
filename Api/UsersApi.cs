@@ -1,26 +1,42 @@
 using Microsoft.Playwright;
+using PlaywrightDotNetApiAutomation.Models;
 
 namespace PlaywrightDotNetApiAutomation.Api;
 
 public class UsersApi
 {
-    private readonly IAPIRequestContext _apiContext;
+    private readonly ApiClient _client;
 
-    public UsersApi(IAPIRequestContext apiContext)
+    public UsersApi(ApiClient client)
     {
-        _apiContext = apiContext;
+        _client = client;
     }
 
     public async Task<IAPIResponse> GetUser(int id)
     {
-        return await _apiContext.GetAsync($"/api/users/{id}");
+        return await _client.GetAsync($"/api/users/{id}");
+    }
+
+    public async Task<IAPIResponse> GetUsersPage(int page)
+    {
+        return await _client.GetAsync("/api/users", new Dictionary<string, string>
+        {
+            ["page"] = page.ToString()
+        });
     }
 
     public async Task<IAPIResponse> CreateUser(CreateUserRequest request)
     {
-        return await _apiContext.PostAsync("/api/users", new APIRequestContextOptions
-        {
-            DataObject = request
-        });
+        return await _client.PostAsync("/api/users", request);
+    }
+
+    public async Task<IAPIResponse> UpdateUser(int id, CreateUserRequest request)
+    {
+        return await _client.PutAsync($"/api/users/{id}", request);
+    }
+
+    public async Task<IAPIResponse> DeleteUser(int id)
+    {
+        return await _client.DeleteAsync($"/api/users/{id}");
     }
 }
