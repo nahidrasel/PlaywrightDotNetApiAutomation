@@ -21,8 +21,10 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
     env:
-      APP_Username: ${{ secrets.APP_USERNAME }}
-      APP_Password: ${{ secrets.APP_PASSWORD }}
+      APP_API_BASE_URL: ${{ vars.API_BASE_URL || secrets.API_BASE_URL }}
+      APP_USERNAME: ${{ secrets.APP_USERNAME }}
+      APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+      APP_TIMEOUTMS: ${{ vars.API_TIMEOUT_MS || '30000' }}
 
     steps:
       - name: Checkout repository

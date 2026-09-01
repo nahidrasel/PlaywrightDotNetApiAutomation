@@ -85,6 +85,67 @@ result!.Data.Should().NotBeNull();
 result.Data!.Id.Should().Be(2);
 ```
 
+## Setup, teardown, and request context pattern
+
+The GitHub API examples typically create test data in `beforeAll` and remove it in `afterAll`. In this project, the same pattern is handled in the shared fixture base class so every test gets a fresh `APIRequestContext`.
+
+```csharp
+public abstract class BaseTest
+{
+    protected IPlaywright Playwright = null!;
+    protected IAPIRequestContext ApiContext = null!;
+
+    [SetUp]
+    public async Task Setup()
+    {
+        Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+
+        var headers = new Dictionary<string, string>
+        {
+            ["Accept"] = "application/json"
+        };
+
+        if (!string.IsNullOrWhiteSpace(AppSettings.Username)
+            && !string.IsNullOrWhiteSpace(AppSettings.Password))
+        {
+            var basicAuth = Convert.ToBase64String(
+                System.Text.Encoding.UTF8.GetBytes($"{AppSettings.Username}:{AppSettings.Password}"));
+
+            headers["Authorization"] = $"Basic {basicAuth}";
+        }
+
+        ApiContext = await Playwright.APIRequest.NewContextAsync(
+            new APIRequestNewContextOptions
+            {
+                BaseURL = AppSettings.ApiBaseUrl,
+                ExtraHTTPHeaders = headers,
+                Timeout = AppSettings.TimeoutMs
+            });
+    }
+
+    [TearDown]
+    public async Task Teardown()
+    {
+        if (ApiContext is not null)
+        {
+            await ApiContext.DisposeAsync();
+        }
+
+        Playwright?.Dispose();
+    }
+}
+```
+
+This is the same idea as using a `request` fixture in Playwright JavaScript: create the API context once, send requests to the API, and make sure it is disposed during teardown for clean test isolation.
+
+For repository-style tests, the lifecycle is usually:
+
+1. Create test data before the suite starts
+2. Run the tests against that data
+3. Clean up after the suite finishes
+
+This is the recommended pattern when the API under test is stateful, such as GitHub repositories, issues, or users.
+
 ## Notes
 
 - The URL remains in repo config and is safe to keep in source control.

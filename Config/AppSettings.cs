@@ -10,26 +10,28 @@ public static class AppSettings
     {
         var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        void AddValue(string? key, string? value)
+        {
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            values[CanonicalizeKey(key)] = value.Trim();
+        }
+
         if (File.Exists(ConfigPath))
         {
             using var document = JsonDocument.Parse(File.ReadAllText(ConfigPath));
             foreach (var property in document.RootElement.EnumerateObject())
             {
-                values[property.Name] = property.Value.ToString();
+                AddValue(property.Name, property.Value.ToString());
             }
         }
 
         foreach (var kvp in Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>())
         {
-            var key = kvp.Key?.ToString();
-            if (!string.IsNullOrWhiteSpace(key) && key.StartsWith("APP_", StringComparison.OrdinalIgnoreCase))
-            {
-                var value = kvp.Value?.ToString();
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    values[key.Replace("APP_", string.Empty, StringComparison.OrdinalIgnoreCase)] = value;
-                }
-            }
+            AddValue(kvp.Key?.ToString(), kvp.Value?.ToString());
         }
 
         return values;
@@ -42,12 +44,28 @@ public static class AppSettings
 
     private static string GetValue(string key, string defaultValue)
     {
+        var canonicalKey = CanonicalizeKey(key);
         var settings = Settings.Value;
-        if (settings.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value))
+
+        if (settings.TryGetValue(canonicalKey, out var value) && !string.IsNullOrWhiteSpace(value))
         {
             return value;
         }
 
         return defaultValue;
+    }
+
+    private static string CanonicalizeKey(string key)
+    {
+        var normalized = key.Trim();
+
+        if (normalized.StartsWith("APP_", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized[4..];
+        }
+
+        normalized = new string(normalized.Where(char.IsLetterOrDigit).ToArray());
+
+        return normalized.ToLowerInvariant();
     }
 }
