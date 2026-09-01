@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Playwright;
 using PlaywrightDotNetApiAutomation.Api;
 using PlaywrightDotNetApiAutomation.Fixtures;
 using PlaywrightDotNetApiAutomation.Helpers;
