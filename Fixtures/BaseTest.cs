@@ -37,7 +37,11 @@ public abstract class BaseTest
     [TearDown]
     public async Task Teardown()
     {
-        await ApiContext.DisposeAsync();
-        Playwright.Dispose();
+        if (ApiContext is not null)
+        {
+            await ApiContext.DisposeAsync();
+        }
+
+        Playwright?.Dispose();
     }
 }

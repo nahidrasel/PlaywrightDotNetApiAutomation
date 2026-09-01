@@ -8,11 +8,16 @@ public static class AppSettings
 
     private static readonly Lazy<Dictionary<string, string>> Settings = new(() =>
     {
-        var json = File.Exists(ConfigPath)
-            ? File.ReadAllText(ConfigPath)
-            : "{}";
+        var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        var values = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
+        if (File.Exists(ConfigPath))
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(ConfigPath));
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                values[property.Name] = property.Value.ToString();
+            }
+        }
 
         foreach (var kvp in Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>())
         {
