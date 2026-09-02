@@ -41,7 +41,7 @@ public class UsersTests : BaseTest
     [Test]
     public async Task GetUser_WithInvalidId_ShouldReturn404()
     {
-        var response = await ApiContext.GetAsync("/api/users/99999");
+        var response = await _client.GetAsync("/api/users/99999");
         response.Status.Should().Be(404, "Invalid user id should return 404");
     }
 

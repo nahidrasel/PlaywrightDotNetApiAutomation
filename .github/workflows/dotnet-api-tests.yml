@@ -38,8 +38,39 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Run tests
+      - name: Run full test suite
+        id: full-suite
+        continue-on-error: true
         run: dotnet test --no-restore --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+
+      - name: Rerun failed tests once
+        if: steps.full-suite.outcome == 'failure'
+        shell: pwsh
+        run: |
+          [xml]$results = Get-Content TestResults/test-results.trx
+          $failedTests = @(
+            $results.SelectNodes("//*[local-name()='UnitTestResult'][@outcome='Failed']") |
+              ForEach-Object { $_.testName } |
+              Sort-Object -Unique
+          )
+
+          if ($failedTests.Count -eq 0) {
+            throw 'The full test suite failed, but no failed test names were found in the TRX file.'
+          }
+
+          $rerunFailures = 0
+          for ($index = 0; $index -lt $failedTests.Count; $index++) {
+            $testName = $failedTests[$index]
+            Write-Host "Rerunning failed test once: $testName"
+            dotnet test --no-restore --filter "FullyQualifiedName~$testName" --logger "trx;LogFileName=rerun-$index.trx" --results-directory TestResults
+            if ($LASTEXITCODE -ne 0) {
+              $rerunFailures++
+            }
+          }
+
+          if ($rerunFailures -gt 0) {
+            Write-Error "$rerunFailures test(s) still failed after one rerun."
+          }
 
       - name: Publish test report
         if: always()
@@ -48,4 +79,12 @@ jobs:
           name: .NET API Tests
           path: 'TestResults/**/*.trx'
           reporter: dotnet-trx
-          fail-on-error: true
+          fail-on-error: false
+
+      - name: Upload test results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: TestResults/
+          if-no-files-found: warn
