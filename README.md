@@ -1,6 +1,6 @@
 # Playwright .NET API Automation
 
-A C# API automation sample using Microsoft Playwright's API request support, NUnit, and FluentAssertions. The suite exercises REST endpoints and demonstrates reusable API clients, typed response models, test fixtures, and environment-based configuration.
+A C# API automation sample using Microsoft Playwright's API request support, NUnit, and FluentAssertions. The suite exercises REST endpoints and demonstrates reusable API clients, typed response models, test fixtures, and configuration.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ dotnet restore
 dotnet test
 ```
 
-The GitHub Actions workflow runs the test suite on Ubuntu and Windows and publishes TRX test results. The workflow also has a scheduled run and can be started manually.
+The GitHub Actions workflow runs the suite on Ubuntu and Windows, publishes TRX test results, and supports scheduled and manual runs.
 
 ## Project structure
 
@@ -30,9 +30,9 @@ Models/    request and response models
 Tests/     NUnit API tests
 ```
 
-## Configuration and credentials
+## Configuration
 
-Review `Config/appsettings.json` and `Config/AppSettings.cs` before running against a different environment. The CI workflow reads optional application credentials from GitHub Actions secrets named `APP_USERNAME` and `APP_PASSWORD`. Do not commit real credentials or tokens. Configure environment-specific values through your local environment or repository secrets.
+Review `Config/appsettings.json` and `Config/AppSettings.cs` before changing environments. The workflow maps GitHub Actions secrets to the environment variables `APP_Username` and `APP_Password`. For local runs, configure values using the same names if the app settings code reads environment variables. Never commit real credentials or tokens.
 
 ## Notes
 
